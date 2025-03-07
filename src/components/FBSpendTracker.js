@@ -1,8 +1,8 @@
-// src/components/FBSpendTracker.js
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-const FBSpendTracker = () => {
+// Обновленный компонент, который принимает appId в качестве пропса
+const FBSpendTracker = ({ appId }) => {
   // Состояния для хранения данных
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,13 +20,29 @@ const FBSpendTracker = () => {
     until: new Date().toISOString().split('T')[0] // сегодня
   });
 
-  // Загрузка Facebook SDK при монтировании компонента
+  // Загрузка Facebook SDK при монтировании компонента или изменении appId
   useEffect(() => {
     const loadFacebookSDK = () => {
+      // Очищаем предыдущие состояния при изменении App ID
+      setIsSDKLoaded(false);
+      setIsLoggedIn(false);
+      setAccounts([]);
+      setSpendData([]);
+      setTotalSpend(0);
+      setAllAccountsData({});
+      setSelectedAccountId(null);
+      setHiddenAccounts([]);
+      
+      // Удаляем предыдущий SDK, если он существует
+      const existingScript = document.getElementById('facebook-jssdk');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      
       // Инициализация Facebook SDK
       window.fbAsyncInit = function() {
         window.FB.init({
-          appId: process.env.REACT_APP_FB_APP_ID, // App ID
+          appId: appId, // Используем appId из пропсов
           cookie: true,
           xfbml: true,
           version: 'v19.0'
@@ -53,7 +69,7 @@ const FBSpendTracker = () => {
     };
 
     loadFacebookSDK();
-  }, []);
+  }, [appId]); // Перезагружаем SDK при изменении appId
 
   // Функция для входа через Facebook
   const handleLogin = () => {
